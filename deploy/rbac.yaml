@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    k8s-app: eks-image-updater
+  name: eks-image-updater
+  namespace: cicd
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  labels:
+    k8s-app: eks-image-updater
+  name: eks-image-updater
+rules:
+  - apiGroups: ["", "apps", "apps/v1"]
+    resources: ["deployments"]
+    verbs: ["get", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: eks-image-updater
+  labels:
+    k8s-app: eks-image-updater
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: eks-image-updater
+subjects:
+  - kind: ServiceAccount
+    name: eks-image-updater
+    namespace: cicd

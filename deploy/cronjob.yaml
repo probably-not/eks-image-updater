@@ -1,0 +1,30 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: eks-image-updater
+  namespace: cicd
+spec:
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      parallelism: 1
+      ttlSecondsAfterFinished: 60
+      template:
+        spec:
+          serviceAccountName: eks-image-updater
+          containers:
+            - image: probablynot/eks-image-updater:latest
+              name: eks-image-updater
+              command: ["./eks-image-updater"]
+              args:
+                - --log-level=$(LOG_LEVEL)
+                - --region=$(AWS_REGION)
+                - --tag=$(TAG_TO_FIND)
+                - --services=$(SERVICES_TO_WATCH)
+              envFrom:
+                - configMapRef:
+                    name: eks-image-updater
+                    optional: false
+          restartPolicy: OnFailure
+  schedule: "*/1 * * * *"
