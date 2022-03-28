@@ -103,7 +103,7 @@ func main() {
 
 	kubeClient, err := utils.GetKubeClient(inCluster, kubeconfig, kubeContext)
 	if err != nil {
-		logrus.WithError(err).Fatalf("failed to get Kubernetes API Client")
+		logrus.WithError(err).Fatal("failed to get Kubernetes API Client")
 	}
 
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
