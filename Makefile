@@ -9,7 +9,7 @@ all: build
 
 build:
 	@echo ">> building using docker"
-	@$(DOCKER) build -t ${REGISTRY}/${IMAGE}:${TAG} -f Dockerfile .
+	@$(DOCKER) build --platform linux/amd64 -t ${REGISTRY}/${IMAGE}:${TAG} -f Dockerfile .
 	@$(DOCKER) tag ${REGISTRY}/${IMAGE}:${TAG} ${REGISTRY}/${IMAGE}:latest
 
 push:
