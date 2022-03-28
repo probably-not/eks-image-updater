@@ -182,7 +182,7 @@ func reconcileService(kubeClient *kubernetes.Clientset, svc service, imageDetail
 		currentTag := c.Image[tagIDX+1:]
 		if utils.StrSliceContains(imageDetails.ImageTags, currentTag) {
 			logrus.WithField("service", svc).Info("service tag has not changed")
-			continue
+			break
 		}
 
 		logrus.WithFields(logrus.Fields{
@@ -204,6 +204,8 @@ func reconcileService(kubeClient *kubernetes.Clientset, svc service, imageDetail
 			"previous_tag": currentTag,
 			"new_tag":      newTag,
 		}).Info("updated service tag")
+
+		break
 	}
 
 	return nil
