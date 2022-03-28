@@ -28,8 +28,8 @@ var (
 
 type servicesFlag []service
 type service struct {
-	serviceNamespace string
-	serviceName      string
+	namespace string
+	name      string
 }
 
 func parseService(v string) (service, error) {
@@ -38,8 +38,8 @@ func parseService(v string) (service, error) {
 		return service{}, errors.New("invalid service")
 	}
 	return service{
-		serviceNamespace: spl[0],
-		serviceName:      spl[1],
+		namespace: spl[0],
+		name:      spl[1],
 	}, nil
 }
 
@@ -114,9 +114,9 @@ func main() {
 	svc := ecr.NewFromConfig(cfg)
 
 	for _, service := range services {
-		images, err := fetchImages(svc, service.serviceName)
+		images, err := fetchImages(svc, service.name)
 		if err != nil {
-			logrus.WithError(err).WithField("service", service.serviceName).Fatal("failed to get images for service")
+			logrus.WithError(err).WithField("service", service.name).Fatal("failed to get images for service")
 		}
 
 		var (
@@ -132,12 +132,12 @@ func main() {
 		}
 
 		if !found {
-			logrus.WithError(err).WithField("service", service.serviceName).Fatal("failed find latest image tag")
+			logrus.WithError(err).WithField("service", service.name).Fatal("failed find latest image tag")
 		}
 
 		err = reconcileService(kubeClient, service, targetImage)
 		if err != nil {
-			logrus.WithError(err).WithField("service", service.serviceName).Fatal("failed to reconcile service")
+			logrus.WithError(err).WithField("service", service.name).Fatal("failed to reconcile service")
 		}
 	}
 }
@@ -164,13 +164,13 @@ func fetchImages(svc *ecr.Client, serviceName string) ([]types.ImageDetail, erro
 }
 
 func reconcileService(kubeClient *kubernetes.Clientset, svc service, imageDetails types.ImageDetail) error {
-	deployment, err := kubeClient.AppsV1().Deployments(svc.serviceNamespace).Get(context.TODO(), svc.serviceName, v1.GetOptions{})
+	deployment, err := kubeClient.AppsV1().Deployments(svc.namespace).Get(context.TODO(), svc.name, v1.GetOptions{})
 	if err != nil {
 		return err
 	}
 
 	for cIdx, c := range deployment.Spec.Template.Spec.Containers {
-		if c.Name != svc.serviceName {
+		if c.Name != svc.name {
 			continue
 		}
 
@@ -194,7 +194,7 @@ func reconcileService(kubeClient *kubernetes.Clientset, svc service, imageDetail
 		newTag := utils.GetValidImageTag(imageDetails.ImageTags)
 		newImage := strings.ReplaceAll(c.Image, currentTag, newTag)
 		deployment.Spec.Template.Spec.Containers[cIdx].Image = newImage
-		_, err := kubeClient.AppsV1().Deployments(svc.serviceNamespace).Update(context.TODO(), deployment, v1.UpdateOptions{})
+		_, err := kubeClient.AppsV1().Deployments(svc.namespace).Update(context.TODO(), deployment, v1.UpdateOptions{})
 		if err != nil {
 			return err
 		}
