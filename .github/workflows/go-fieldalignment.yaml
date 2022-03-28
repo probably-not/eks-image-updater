@@ -1,0 +1,19 @@
+name: Go Field Alignment
+
+on: [push]
+
+jobs:
+  fieldalignment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.17"
+      - name: Go Field Alignment
+        run: |
+          go get -u golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
+          fieldalignment $(go list ./...)
+          exit $?

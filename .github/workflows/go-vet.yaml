@@ -1,0 +1,18 @@
+name: Go Vet
+
+on: [push]
+
+jobs:
+  vet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.17"
+      - name: Install Dependencies
+        run: go mod download
+      - name: Go Vet
+        run: go vet $(go list ./...)
