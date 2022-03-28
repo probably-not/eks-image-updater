@@ -114,6 +114,11 @@ func main() {
 	svc := ecr.NewFromConfig(cfg)
 
 	for _, service := range services {
+		logrus.WithFields(logrus.Fields{
+			"service_namespace": service.namespace,
+			"service_name":      service.name,
+		}).Info("fetching images for service")
+
 		images, err := fetchImages(svc, service.name)
 		if err != nil {
 			logrus.WithError(err).WithField("service", service.name).Fatal("failed to get images for service")
@@ -135,10 +140,22 @@ func main() {
 			logrus.WithError(err).WithField("service", service.name).Fatal("failed find latest image tag")
 		}
 
+		logrus.WithFields(logrus.Fields{
+			"service_namespace": service.namespace,
+			"service_name":      service.name,
+			"target_image_tags": targetImage.ImageTags,
+		}).Info("latest tags for service")
+
 		err = reconcileService(kubeClient, service, targetImage)
 		if err != nil {
 			logrus.WithError(err).WithField("service", service.name).Fatal("failed to reconcile service")
 		}
+
+		logrus.WithFields(logrus.Fields{
+			"service_namespace": service.namespace,
+			"service_name":      service.name,
+			"target_image_tags": targetImage.ImageTags,
+		}).Info("reconciled service")
 	}
 }
 
