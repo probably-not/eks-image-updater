@@ -14,7 +14,6 @@ RUN CGO_ENABLED=0 GOOS=linux go build -tags netgo,osusergo -ldflags '-extldflags
 FROM gcr.io/distroless/static:latest
 WORKDIR /app
 
-COPY --from=build-env /go/src/github.com/probably-not/eks-image-updater/configs /app/configs
 COPY --from=build-env /go/src/github.com/probably-not/eks-image-updater /app/
 
 ENTRYPOINT ["./eks-image-updater"]
