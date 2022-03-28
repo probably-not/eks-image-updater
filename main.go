@@ -116,7 +116,7 @@ func main() {
 	for _, service := range services {
 		images, err := fetchImages(svc, service.serviceName)
 		if err != nil {
-			logrus.WithError(err).WithField("service", service).Fatal("failed to get images for service")
+			logrus.WithError(err).WithField("service", service.serviceName).Fatal("failed to get images for service")
 		}
 
 		var (
@@ -131,11 +131,13 @@ func main() {
 			}
 		}
 
-		if found {
-			err := reconcileService(kubeClient, service, targetImage)
-			if err != nil {
-				logrus.WithError(err).WithField("service", service).Fatal("failed to reconcile service")
-			}
+		if !found {
+			logrus.WithError(err).WithField("service", service.serviceName).Fatal("failed find latest image tag")
+		}
+
+		err = reconcileService(kubeClient, service, targetImage)
+		if err != nil {
+			logrus.WithError(err).WithField("service", service.serviceName).Fatal("failed to reconcile service")
 		}
 	}
 }
