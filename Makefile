@@ -2,7 +2,7 @@ GO := go
 DOCKER := docker
 TAG?=$(shell git rev-parse HEAD)
 REGISTRY?=probablynot
-IMAGE=go-module-small
+IMAGE=eks-image-updater
 GOOS=linux
 
 all: build
@@ -18,6 +18,6 @@ push:
 
 bin:
 	@echo ">> building local binary"
-	CGO_ENABLED=0 GOOS=${GOOS} go build -a -ldflags '-extldflags "-static"' -o go-module-small
+	CGO_ENABLED=0 GOOS=${GOOS} go build -a -ldflags '-extldflags "-static"' -o eks-image-updater
 
 .PHONY: all build push bin
