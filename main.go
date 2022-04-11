@@ -119,9 +119,14 @@ func main() {
 			"service_name":      service.name,
 		}).Info("fetching images for service")
 
-		images, err := fetchImages(svc, service.name)
+		imageName, err := fetchImageNameFromDeployment(kubeClient, service)
 		if err != nil {
-			logrus.WithError(err).WithField("service", service.name).Fatal("failed to get images for service")
+			logrus.WithError(err).WithField("service", service.name).Fatal("failed to get image from service deployment")
+		}
+
+		images, err := fetchImages(svc, imageName)
+		if err != nil {
+			logrus.WithError(err).WithField("service", service.name).WithField("image_name", imageName).Fatal("failed to get images for service")
 		}
 
 		var (
@@ -157,6 +162,43 @@ func main() {
 			"target_image_tags": targetImage.ImageTags,
 		}).Info("reconciled service")
 	}
+}
+
+func fetchImageNameFromDeployment(kubeClient *kubernetes.Clientset, svc service) (string, error) {
+	deployment, err := kubeClient.AppsV1().Deployments(svc.namespace).Get(context.TODO(), svc.name, v1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+
+	for _, c := range deployment.Spec.Template.Spec.Containers {
+		if c.Name != svc.name {
+			continue
+		}
+
+		imageNameIdx := strings.LastIndex(c.Image, "/")
+		if imageNameIdx < 0 {
+			return "", fmt.Errorf("image %s does not contain an image name", c.Image)
+		}
+
+		imageAndTag := c.Image[imageNameIdx+1:]
+
+		tagIDX := strings.LastIndex(imageAndTag, ":")
+		if tagIDX < 0 {
+			return "", fmt.Errorf("image and tag %s does not contain a tag", imageAndTag)
+		}
+
+		imageName := imageAndTag[:tagIDX-1]
+		logrus.WithFields(logrus.Fields{
+			"service_name":      svc.name,
+			"service_namespace": svc.namespace,
+			"image_name":        imageName,
+			"container_image":   c.Image,
+		}).Info("parsed image name from image")
+
+		return imageName, nil
+	}
+
+	return "", fmt.Errorf("could not find container that matches the service name %s", svc.name)
 }
 
 func fetchImages(svc *ecr.Client, serviceName string) ([]types.ImageDetail, error) {
