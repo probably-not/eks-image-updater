@@ -187,7 +187,7 @@ func fetchImageNameFromDeployment(kubeClient *kubernetes.Clientset, svc service)
 			return "", fmt.Errorf("image and tag %s does not contain a tag", imageAndTag)
 		}
 
-		imageName := imageAndTag[:tagIDX-1]
+		imageName := imageAndTag[:tagIDX]
 		logrus.WithFields(logrus.Fields{
 			"service_name":      svc.name,
 			"service_namespace": svc.namespace,
