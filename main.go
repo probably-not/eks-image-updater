@@ -255,10 +255,14 @@ func reconcileService(kubeClient *kubernetes.Clientset, svc service, imageDetail
 			"latest_tags":       imageDetails.ImageTags,
 		}).Info("service tag has changed")
 
-		newTag := utils.GetValidImageTag(imageDetails.ImageTags)
+		newTag, err := utils.GetValidImageTag(imageDetails.ImageTags)
+		if err != nil {
+			return err
+		}
+
 		newImage := strings.ReplaceAll(c.Image, currentTag, newTag)
 		deployment.Spec.Template.Spec.Containers[cIdx].Image = newImage
-		_, err := kubeClient.AppsV1().Deployments(svc.namespace).Update(context.TODO(), deployment, v1.UpdateOptions{})
+		_, err = kubeClient.AppsV1().Deployments(svc.namespace).Update(context.TODO(), deployment, v1.UpdateOptions{})
 		if err != nil {
 			return err
 		}

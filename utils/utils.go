@@ -1,5 +1,7 @@
 package utils
 
+import "errors"
+
 func StrSliceContains(slice []string, target string) bool {
 	for _, s := range slice {
 		if s == target {
@@ -10,17 +12,19 @@ func StrSliceContains(slice []string, target string) bool {
 }
 
 var excludedTags = map[string]struct{}{
-	"latest": {},
-	"prod":   {},
-	"stg":    {},
+	"latest":     {},
+	"prod":       {},
+	"stg":        {},
+	"production": {},
+	"staging":    {},
 }
 
-func GetValidImageTag(imageTags []string) string {
+func GetValidImageTag(imageTags []string) (string, error) {
 	for _, t := range imageTags {
 		if _, exists := excludedTags[t]; !exists {
-			return t
+			return t, nil
 		}
 	}
 
-	return ""
+	return "", errors.New("valid image tag not found")
 }
