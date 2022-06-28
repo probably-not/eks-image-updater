@@ -143,6 +143,7 @@ func main() {
 
 		if !found {
 			logrus.WithError(err).WithField("service", service.name).Fatal("failed find latest image tag")
+			continue
 		}
 
 		logrus.WithFields(logrus.Fields{
